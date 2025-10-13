@@ -37,12 +37,17 @@ jobs:
       run: |
         # Copy frontend files to docs for GitHub Pages
         cp -r frontend/* docs/
+        # Ensure index.html exists in root
+        if [ ! -f index.html ]; then
+          echo "Creating index.html in root"
+          cp docs/index.html index.html
+        fi
         
     - name: Upload Pages artifact
       uses: actions/upload-pages-artifact@v3
       if: github.ref == 'refs/heads/main'
       with:
-        path: ./docs
+        path: ./
         
     - name: Deploy to GitHub Pages
       uses: actions/deploy-pages@v3
