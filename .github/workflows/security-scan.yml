@@ -48,7 +48,7 @@ jobs:
           bandit -r . -f txt
 
       - name: 📊 Upload relatórios de segurança
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-reports
@@ -179,7 +179,7 @@ jobs:
           pip-licenses --format=html --output-file=licenses.html
 
       - name: 📊 Upload relatório de licenças
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: license-reports

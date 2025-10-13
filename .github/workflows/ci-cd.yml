@@ -80,7 +80,7 @@ jobs:
           safety check
 
       - name: 📊 Upload relatórios de qualidade
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: quality-reports
@@ -135,7 +135,7 @@ jobs:
           name: backend-coverage
 
       - name: 📄 Upload relatório de testes
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backend-test-results
@@ -179,7 +179,7 @@ jobs:
           pytest test_api.py -v --html=api-test-report.html --self-contained-html --junitxml=api-test-results.xml
 
       - name: 📄 Upload relatório de testes de API
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: api-test-results
@@ -228,7 +228,7 @@ jobs:
           pytest test_web.py -v --html=web-test-report.html --self-contained-html --junitxml=web-test-results.xml
 
       - name: 📄 Upload relatório de testes web
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: web-test-results
@@ -272,7 +272,7 @@ jobs:
           python run_performance_tests.py
 
       - name: 📄 Upload relatórios de performance
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: performance-results
