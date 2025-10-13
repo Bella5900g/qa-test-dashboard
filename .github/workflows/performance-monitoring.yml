@@ -76,8 +76,8 @@ jobs:
             avg_response_time=$(tail -n +2 performance_results.jtl | awk -F',' '{sum+=$2; count++} END {print sum/count}')
             echo "**Tempo Médio de Resposta:** ${avg_response_time}ms" >> $GITHUB_STEP_SUMMARY
             
-            # Calcular throughput
-            throughput=$(echo "scale=2; $total_requests / 300" | bc)
+            # Calcular throughput (sem bc)
+            throughput=$(python -c "print(f'{total_requests / 300:.2f}')")
             echo "**Throughput:** ${throughput} req/s" >> $GITHUB_STEP_SUMMARY
           fi
 
@@ -290,7 +290,8 @@ jobs:
               alerts=$((alerts + 1))
             fi
             
-            if (( $(echo "$avg_response_time > 2000" | bc -l) )); then
+            # Verificar tempo de resposta (sem bc)
+            if python -c "exit(0 if $avg_response_time > 2000 else 1)"; then
               echo "🚨 **ALERTA:** Tempo de resposta acima de 2s (${avg_response_time}ms)" >> $GITHUB_STEP_SUMMARY
               alerts=$((alerts + 1))
             fi
