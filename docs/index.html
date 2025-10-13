@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Test Dashboard - Documentação</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #8e44ad 100%);
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 50px;
+        }
+
+        .feature-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 24px;
+            color: white;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .developer-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 50px 0;
+        }
+
+        .developer-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .metric-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .tech-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .contact-btn {
+            background: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-btn:hover {
+            background: #5a2d91;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-robot me-2"></i>
+                QA Test Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Funcionalidades</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#tech">Tecnologias</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#developer">Desenvolvedora</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contato</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-4">
+                <i class="fas fa-chart-line me-3"></i>
+                QA Test Automation Dashboard
+            </h1>
+            <p class="lead mb-4">
+                Solução completa para automação e monitoramento de testes de qualidade de software
+            </p>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-number">70%</div>
+                                <small>Redução de Bugs</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-number">30%</div>
+                                <small>Aceleração Releases</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-number">R$ 1.5M</div>
+                                <small>Economia Gerada</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-card">
+                                <div class="metric-number">R$ 2B</div>
+                                <small>Transações Processadas</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="https://bella5900g.github.io/qa-test-dashboard/" class="btn btn-light btn-lg mt-4">
+                <i class="fas fa-play me-2"></i>
+                Ver Dashboard
+            </a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="section-title">🚀 Funcionalidades Principais</h2>
+            <div class="row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-primary">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h5 class="card-title">Métricas em Tempo Real</h5>
+                            <p class="card-text">
+                                Acompanhe taxa de sucesso, cobertura de código, tempo de execução e bugs encontrados com atualizações automáticas.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-success">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                            <h5 class="card-title">Execução Automatizada</h5>
+                            <p class="card-text">
+                                Execute testes Web, API e Performance com um clique. Suporte completo a Selenium, Pytest e JMeter.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-info">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5 class="card-title">Dashboards Interativos</h5>
+                            <p class="card-text">
+                                Gráficos dinâmicos com Chart.js mostrando tendências, distribuições e análises de performance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-warning">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h5 class="card-title">Integração CI/CD</h5>
+                            <p class="card-text">
+                                Compatível com pipelines de integração contínua. GitHub Actions, Azure DevOps e Jenkins.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-danger">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <h5 class="card-title">Design Responsivo</h5>
+                            <p class="card-text">
+                                Interface moderna e adaptável para desktop, tablet e mobile. Bootstrap 5 e design system consistente.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-secondary">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h5 class="card-title">Relatórios Detalhados</h5>
+                            <p class="card-text">
+                                Análise completa de execuções com relatórios HTML, métricas de performance e alertas automáticos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section id="tech" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">🛠️ Stack Tecnológico</h2>
+            <div class="row">
+                <div class="col-lg-6">
+                    <h4><i class="fas fa-server me-2"></i>Backend</h4>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Python 3.13+</span>
+                        <span class="tech-badge">Flask 3.1.2</span>
+                        <span class="tech-badge">SQLAlchemy 2.0.44</span>
+                        <span class="tech-badge">SQLite</span>
+                        <span class="tech-badge">Pytest</span>
+                        <span class="tech-badge">Selenium</span>
+                        <span class="tech-badge">JMeter</span>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h4><i class="fas fa-desktop me-2"></i>Frontend</h4>
+                    <div class="tech-stack">
+                        <span class="tech-badge">HTML5/CSS3</span>
+                        <span class="tech-badge">JavaScript ES6+</span>
+                        <span class="tech-badge">Bootstrap 5</span>
+                        <span class="tech-badge">Chart.js</span>
+                        <span class="tech-badge">Font Awesome</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-lg-6">
+                    <h4><i class="fas fa-cloud me-2"></i>DevOps & Deploy</h4>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Docker</span>
+                        <span class="tech-badge">Docker Compose</span>
+                        <span class="tech-badge">Nginx</span>
+                        <span class="tech-badge">GitHub Actions</span>
+                        <span class="tech-badge">GitHub Pages</span>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h4><i class="fas fa-tools me-2"></i>Ferramentas</h4>
+                    <div class="tech-stack">
+                        <span class="tech-badge">Postman</span>
+                        <span class="tech-badge">DBeaver</span>
+                        <span class="tech-badge">Azure DevOps</span>
+                        <span class="tech-badge">Jira</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">⚡ Quick Start</h2>
+            <div class="row">
+                <div class="col-lg-6">
+                    <h4><i class="fas fa-download me-2"></i>Instalação Local</h4>
+                    <div class="code-block">
+                        <pre><code class="language-bash"># Clone o repositório
+git clone https://github.com/Bella5900g/qa-test-dashboard.git
+cd qa-test-dashboard
+
+# Configure o ambiente Python
+cd backend
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+venv\Scripts\activate     # Windows
+
+# Instale as dependências
+pip install -r requirements.txt
+
+# Inicie o backend
+python app.py</code></pre>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h4><i class="fas fa-docker me-2"></i>Deploy com Docker</h4>
+                    <div class="code-block">
+                        <pre><code class="language-bash"># Build e execução completa
+docker-compose up --build
+
+# Acesso
+# Dashboard: http://localhost:80
+# API: http://localhost:5000</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p class="lead">
+                    <strong>Acesso:</strong> Dashboard: http://localhost:8000 | API: http://localhost:5000/api
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Developer Section -->
+    <section id="developer" class="py-5">
+        <div class="container">
+            <div class="developer-section">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 text-center">
+                        <img src="https://via.placeholder.com/150x150/6f42c1/ffffff?text=IVB" alt="Isabella Vieira Barbosa" class="developer-avatar">
+                        <h3 class="mt-3">Isabella Vieira Barbosa</h3>
+                        <p class="lead text-muted">QA Chapter Lead | Meta</p>
+                    </div>
+                    <div class="col-lg-8">
+                        <h4><i class="fas fa-user-tie me-2"></i>Sobre a Desenvolvedora</h4>
+                        <p class="mb-3">
+                            <strong>QA Chapter Lead</strong> com <strong>10+ anos</strong> de experiência em Qualidade de Software. 
+                            Atualmente <strong>Analista de QA Sênior na Meta</strong>, especialista em automação de testes, 
+                            liderança de equipes e estratégias de qualidade em ambientes ágeis e DevOps.
+                        </p>
+                        
+                        <h5><i class="fas fa-trophy me-2"></i>Principais Conquistas</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i><strong>70%</strong> redução de bugs em produção</li>
+                                    <li><i class="fas fa-check text-success me-2"></i><strong>30%</strong> aceleração de releases</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i><strong>R$ 1.5M</strong> economia gerada</li>
+                                    <li><i class="fas fa-check text-success me-2"></i><strong>R$ 2B</strong> transações processadas</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h5><i class="fas fa-certificate me-2"></i>Certificações</h5>
+                        <div class="tech-stack">
+                            <span class="tech-badge">ISTQB CTFL</span>
+                            <span class="tech-badge">ASTFCT</span>
+                        </div>
+
+                        <h5><i class="fas fa-briefcase me-2"></i>Experiência</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Meta</strong> - Analista de QA Sênior (Jul 2025 - Presente)</li>
+                            <li><strong>Pay4Fun</strong> - QA Chapter Lead (Nov 2022 - Jun 2025)</li>
+                            <li><strong>Paraná Banco</strong> - Analista de QA Sênior (Mai 2022 - Nov 2022)</li>
+                            <li><strong>uTest</strong> - QA Freelancer (Set 2018 - Jan 2021)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5 bg-light">
+        <div class="container text-center">
+            <h2 class="section-title">📞 Vamos Conectar</h2>
+            <p class="lead mb-4">
+                Estou sempre aberta a novas oportunidades e desafios que me permitam contribuir para a excelência em qualidade de software.
+            </p>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <a href="https://www.linkedin.com/in/isabellavieiraqa/" class="contact-btn">
+                        <i class="fab fa-linkedin me-2"></i>LinkedIn
+                    </a>
+                    <a href="https://github.com/bella5900g" class="contact-btn">
+                        <i class="fab fa-github me-2"></i>GitHub
+                    </a>
+                    <a href="https://bella5900g.github.io/isabella-vieira-portfolio/" class="contact-btn">
+                        <i class="fas fa-globe me-2"></i>Portfolio
+                    </a>
+                    <a href="mailto:bellacandy5900g@gmail.com" class="contact-btn">
+                        <i class="fas fa-envelope me-2"></i>Email
+                    </a>
+                </div>
+            </div>
+            <div class="mt-4">
+                <p><strong>📍 Localização:</strong> Birigui, São Paulo, Brasil</p>
+                <p class="text-muted">💡 "Transformando qualidade em resultados mensuráveis"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-robot me-2"></i>QA Test Dashboard</h5>
+                    <p class="mb-0">Solução completa para automação e monitoramento de testes</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Desenvolvido por</h5>
+                    <p class="mb-0">Isabella Vieira Barbosa</p>
+                    <small class="text-muted">QA Chapter Lead | Meta</small>
+                </div>
+            </div>
+            <hr class="my-4">
+            <p class="mb-0">&copy; 2025 Isabella Vieira Barbosa. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
