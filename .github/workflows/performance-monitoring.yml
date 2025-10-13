@@ -4,9 +4,10 @@
 name: 📊 Performance Monitoring
 
 on:
-  schedule:
-    # Executar monitoramento de performance diariamente às 3h UTC
-    - cron: '0 3 * * *'
+  # Desabilitado temporariamente para evitar conflitos
+  # schedule:
+  #   # Executar monitoramento de performance diariamente às 3h UTC
+  #   - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
       test_type:

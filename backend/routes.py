@@ -217,7 +217,7 @@ def simular_execucao_testes(execucao_id):
         
         # Atualizar execução
         execucao.duracao = tempo_execucao
-        execucao.status = 'sucesso' if random.random() > 0.2 else 'falha'
+        execucao.status = 'sucesso' if random.random() > 0.2 else 'falha'  # nosec B311
         execucao.data_atualizacao = datetime.utcnow()
         
         db.session.commit()

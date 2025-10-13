@@ -4,13 +4,15 @@
 name: 🔒 Security Scan
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    # Executar scan de segurança semanalmente
-    - cron: '0 2 * * 1'
+  # Desabilitado temporariamente para evitar conflitos
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main ]
+  # schedule:
+  #   # Executar scan de segurança semanalmente
+  #   - cron: '0 2 * * 1'
+  workflow_dispatch:
 
 jobs:
   # =============================================================================
