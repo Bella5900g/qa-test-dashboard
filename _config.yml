@@ -1,0 +1,58 @@
+# GitHub Pages Configuration
+title: QA Test Automation Dashboard
+description: Solução completa para automação e monitoramento de testes de qualidade de software
+author: Isabella Vieira Barbosa
+email: bellacandy5900g@gmail.com
+url: https://bella5900g.github.io
+baseurl: /qa-test-dashboard
+
+# Social links
+social:
+  github: bella5900g
+  linkedin: isabellavieiraqa
+  portfolio: https://bella5900g.github.io/isabella-vieira-portfolio/
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Include
+include:
+  - _pages
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "default"

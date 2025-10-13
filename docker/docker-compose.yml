@@ -1,0 +1,288 @@
+# QA Test Automation Dashboard - Docker Compose
+# Desenvolvido por Isabella Barbosa - Engenheira de QA Sênior
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # Backend API Service
+  # =============================================================================
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: backend
+    container_name: qa-dashboard-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - DATABASE_URL=sqlite:///qa_dashboard.db
+    volumes:
+      - backend_data:/app/data
+      - backend_logs:/app/logs
+    networks:
+      - qa-dashboard-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.qa-dashboard.local`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=5000"
+
+  # =============================================================================
+  # Frontend Service
+  # =============================================================================
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: frontend
+    container_name: qa-dashboard-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - frontend_data:/usr/share/nginx/html
+    networks:
+      - qa-dashboard-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`qa-dashboard.local`)"
+
+  # =============================================================================
+  # Redis Cache Service
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: qa-dashboard-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - qa-dashboard-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # =============================================================================
+  # Test Automation Service
+  # =============================================================================
+  tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: tests
+    container_name: qa-dashboard-tests
+    volumes:
+      - test_results:/app/results
+      - test_reports:/app/reports
+    networks:
+      - qa-dashboard-network
+    depends_on:
+      - backend
+      - frontend
+    environment:
+      - BACKEND_URL=http://backend:5000
+      - FRONTEND_URL=http://frontend:80
+      - DISPLAY=:99
+    command: ["/app/run_tests.sh"]
+    profiles:
+      - testing
+
+  # =============================================================================
+  # Performance Testing Service
+  # =============================================================================
+  performance-tests:
+    image: justb4/jmeter:latest
+    container_name: qa-dashboard-performance
+    volumes:
+      - ./automation/performance:/tests
+      - performance_results:/results
+    networks:
+      - qa-dashboard-network
+    depends_on:
+      - backend
+    environment:
+      - JMETER_SERVER_HOST=backend
+      - JMETER_SERVER_PORT=5000
+    command: >
+      sh -c "
+        jmeter -n -t /tests/performance_test.jmx 
+        -l /results/performance_results.jtl 
+        -e -o /results/performance_report
+        -Jthreads=50 -Jramp_time=60 -Jloops=10
+      "
+    profiles:
+      - performance
+
+  # =============================================================================
+  # Monitoring Service (Prometheus)
+  # =============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: qa-dashboard-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - qa-dashboard-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    profiles:
+      - monitoring
+
+  # =============================================================================
+  # Monitoring Service (Grafana)
+  # =============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: qa-dashboard-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - qa-dashboard-network
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+  # =============================================================================
+  # Log Aggregation Service (ELK Stack)
+  # =============================================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: qa-dashboard-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - qa-dashboard-network
+    ports:
+      - "9200:9200"
+    profiles:
+      - logging
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    container_name: qa-dashboard-logstash
+    volumes:
+      - ./docker/logstash/pipeline:/usr/share/logstash/pipeline
+      - ./docker/logstash/config:/usr/share/logstash/config
+    networks:
+      - qa-dashboard-network
+    depends_on:
+      - elasticsearch
+    profiles:
+      - logging
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: qa-dashboard-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - qa-dashboard-network
+    depends_on:
+      - elasticsearch
+    profiles:
+      - logging
+
+  # =============================================================================
+  # Database Backup Service
+  # =============================================================================
+  backup:
+    image: alpine:latest
+    container_name: qa-dashboard-backup
+    volumes:
+      - backend_data:/data:ro
+      - backup_data:/backup
+    networks:
+      - qa-dashboard-network
+    environment:
+      - BACKUP_SCHEDULE=0 2 * * *  # Diário às 2h
+    command: >
+      sh -c "
+        apk add --no-cache dcron &&
+        echo '0 2 * * * /backup/backup.sh' | crontab - &&
+        crond -f
+      "
+    profiles:
+      - backup
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  qa-dashboard-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  backend_data:
+    driver: local
+  backend_logs:
+    driver: local
+  frontend_data:
+    driver: local
+  redis_data:
+    driver: local
+  test_results:
+    driver: local
+  test_reports:
+    driver: local
+  performance_results:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  backup_data:
+    driver: local

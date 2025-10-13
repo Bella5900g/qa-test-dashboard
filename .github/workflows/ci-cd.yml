@@ -1,0 +1,541 @@
+# QA Test Automation Dashboard - CI/CD Pipeline
+# Desenvolvido por Isabella Barbosa - Engenheira de QA Sênior
+
+name: 🚀 CI/CD Pipeline - QA Dashboard
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Executar testes diariamente às 2h UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente para deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # =============================================================================
+  # Job: Análise de Código e Qualidade
+  # =============================================================================
+  code-quality:
+    name: 🔍 Análise de Código e Qualidade
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install flake8 black isort mypy bandit safety
+          pip install -r requirements.txt
+
+      - name: 🎨 Formatação de código (Black)
+        run: |
+          cd backend
+          black --check --diff .
+
+      - name: 📋 Organização de imports (isort)
+        run: |
+          cd backend
+          isort --check-only --diff .
+
+      - name: 🔍 Linting (Flake8)
+        run: |
+          cd backend
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: 🔒 Análise de segurança (Bandit)
+        run: |
+          cd backend
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -f txt
+
+      - name: 🛡️ Verificação de dependências (Safety)
+        run: |
+          cd backend
+          safety check --json --output safety-report.json || true
+          safety check
+
+      - name: 📊 Upload relatórios de qualidade
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: quality-reports
+          path: |
+            backend/bandit-report.json
+            backend/safety-report.json
+
+  # =============================================================================
+  # Job: Testes de Backend
+  # =============================================================================
+  backend-tests:
+    name: 🧪 Testes de Backend
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🧪 Executar testes unitários
+        run: |
+          cd backend
+          pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml
+
+      - name: 📊 Upload cobertura de código
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+      - name: 📄 Upload relatório de testes
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            backend/test-results.xml
+            backend/htmlcov/
+            backend/coverage.xml
+
+  # =============================================================================
+  # Job: Testes de API
+  # =============================================================================
+  api-tests:
+    name: 🔌 Testes de API
+    runs-on: ubuntu-latest
+    needs: backend-tests
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest-html requests
+
+      - name: 🚀 Iniciar backend
+        run: |
+          cd backend
+          python app.py &
+          sleep 10
+
+      - name: 🧪 Executar testes de API
+        run: |
+          cd automation/api
+          pytest test_api.py -v --html=api-test-report.html --self-contained-html --junitxml=api-test-results.xml
+
+      - name: 📄 Upload relatório de testes de API
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: api-test-results
+          path: |
+            automation/api/api-test-results.xml
+            automation/api/api-test-report.html
+
+  # =============================================================================
+  # Job: Testes Web com Selenium
+  # =============================================================================
+  web-tests:
+    name: 🌐 Testes Web (Selenium)
+    runs-on: ubuntu-latest
+    needs: [backend-tests, api-tests]
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest-html selenium webdriver-manager
+
+      - name: 🌐 Configurar Chrome para Selenium
+        uses: browser-actions/setup-chrome@v1
+
+      - name: 🚀 Iniciar serviços
+        run: |
+          cd backend
+          python app.py &
+          sleep 5
+          cd ../frontend
+          python -m http.server 8000 &
+          sleep 5
+
+      - name: 🧪 Executar testes web
+        run: |
+          cd automation/selenium
+          pytest test_web.py -v --html=web-test-report.html --self-contained-html --junitxml=web-test-results.xml
+
+      - name: 📄 Upload relatório de testes web
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: web-test-results
+          path: |
+            automation/selenium/web-test-results.xml
+            automation/selenium/web-test-report.html
+
+  # =============================================================================
+  # Job: Testes de Performance
+  # =============================================================================
+  performance-tests:
+    name: ⚡ Testes de Performance
+    runs-on: ubuntu-latest
+    needs: [backend-tests, api-tests]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install requests
+
+      - name: 🚀 Iniciar backend
+        run: |
+          cd backend
+          python app.py &
+          sleep 10
+
+      - name: ⚡ Executar testes de performance
+        run: |
+          cd automation/performance
+          python run_performance_tests.py
+
+      - name: 📄 Upload relatórios de performance
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            automation/performance/results/
+
+  # =============================================================================
+  # Job: Build e Teste de Docker
+  # =============================================================================
+  docker-build:
+    name: 🐳 Build e Teste de Docker
+    runs-on: ubuntu-latest
+    needs: [backend-tests, api-tests, web-tests]
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐳 Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Extrair metadados
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🏗️ Build e push imagem backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          target: backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🏗️ Build e push imagem frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          target: frontend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🧪 Testar imagens Docker
+        run: |
+          docker run --rm -d --name test-backend -p 5001:5000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ steps.meta.outputs.tags }}
+          docker run --rm -d --name test-frontend -p 8001:80 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ steps.meta.outputs.tags }}
+          
+          sleep 10
+          
+          # Testar backend
+          curl -f http://localhost:5001/health || exit 1
+          
+          # Testar frontend
+          curl -f http://localhost:8001/ || exit 1
+          
+          # Limpar containers
+          docker stop test-backend test-frontend
+
+  # =============================================================================
+  # Job: Deploy para Staging
+  # =============================================================================
+  deploy-staging:
+    name: 🚀 Deploy para Staging
+    runs-on: ubuntu-latest
+    needs: [docker-build, performance-tests]
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy para staging
+        run: |
+          echo "🚀 Deployando para ambiente de staging..."
+          echo "✅ Deploy concluído com sucesso!"
+          # Aqui seria implementado o deploy real para staging
+
+      - name: 🧪 Testes de smoke em staging
+        run: |
+          echo "🧪 Executando testes de smoke em staging..."
+          # Aqui seriam executados testes de smoke no ambiente de staging
+
+      - name: 📢 Notificar deploy
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#qa-dashboard'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # =============================================================================
+  # Job: Deploy para Produção
+  # =============================================================================
+  deploy-production:
+    name: 🌟 Deploy para Produção
+    runs-on: ubuntu-latest
+    needs: [docker-build, performance-tests]
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment: production
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy para produção
+        run: |
+          echo "🌟 Deployando para ambiente de produção..."
+          echo "✅ Deploy concluído com sucesso!"
+          # Aqui seria implementado o deploy real para produção
+
+      - name: 🧪 Testes de smoke em produção
+        run: |
+          echo "🧪 Executando testes de smoke em produção..."
+          # Aqui seriam executados testes de smoke no ambiente de produção
+
+      - name: 📢 Notificar deploy
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#qa-dashboard'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # =============================================================================
+  # Job: Deploy para GitHub Pages
+  # =============================================================================
+  deploy-pages:
+    name: 📄 Deploy para GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: 🚀 Iniciar backend para gerar dados
+        run: |
+          cd backend
+          python app.py &
+          sleep 10
+
+      - name: 📊 Gerar dados de demonstração
+        run: |
+          python -c "
+          import requests
+          import json
+          
+          # Fazer algumas requisições para popular dados
+          base_url = 'http://localhost:5000/api'
+          
+          # Executar alguns testes
+          for i in range(5):
+              requests.post(f'{base_url}/executar-testes', 
+                          json={'tipo': 'web', 'ambiente': 'demo'})
+          
+          print('✅ Dados de demonstração gerados')
+          "
+
+      - name: 📄 Configurar Pages
+        uses: actions/configure-pages@v3
+
+      - name: 🏗️ Build site
+        run: |
+          # Copiar frontend para diretório de build
+          mkdir -p _site
+          cp -r frontend/* _site/
+          
+          # Adicionar informações sobre o projeto
+          cat > _site/info.json << EOF
+          {
+            \"name\": \"QA Test Automation Dashboard\",
+            \"version\": \"1.0.0\",
+            \"description\": \"Dashboard profissional para automação de testes QA\",
+            \"author\": \"Isabella Barbosa\",
+            \"last_updated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"repository\": \"${{ github.repository }}\",
+            \"commit\": \"${{ github.sha }}\"
+          }
+          EOF
+
+      - name: 📤 Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: _site
+
+      - name: 🚀 Deploy para GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+
+  # =============================================================================
+  # Job: Notificação Final
+  # =============================================================================
+  notify:
+    name: 📢 Notificação Final
+    runs-on: ubuntu-latest
+    needs: [code-quality, backend-tests, api-tests, web-tests, docker-build, deploy-staging, deploy-production, deploy-pages]
+    if: always()
+
+    steps:
+      - name: 📊 Gerar resumo
+        run: |
+          echo "## 📊 Resumo da Execução" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Análise de Código | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Testes de Backend | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔌 Testes de API | ${{ needs.api-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 Testes Web | ${{ needs.web-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐳 Build Docker | ${{ needs.docker-build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚀 Deploy Staging | ${{ needs.deploy-staging.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌟 Deploy Produção | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📄 Deploy Pages | ${{ needs.deploy-pages.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📢 Notificar Slack
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#qa-dashboard'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

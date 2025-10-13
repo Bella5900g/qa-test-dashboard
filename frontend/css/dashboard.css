@@ -1,0 +1,472 @@
+/* QA Test Dashboard - Estilos Personalizados */
+
+:root {
+    --cor-primaria: #007bff;
+    --cor-sucesso: #28a745;
+    --cor-aviso: #ffc107;
+    --cor-perigo: #dc3545;
+    --cor-info: #17a2b8;
+    --cor-escura: #343a40;
+    --cor-clara: #f8f9fa;
+    --sombra-suave: 0 2px 4px rgba(0,0,0,0.1);
+    --sombra-media: 0 4px 8px rgba(0,0,0,0.15);
+    --transicao-suave: all 0.3s ease;
+}
+
+/* Estilos Gerais */
+body {
+    background-color: var(--cor-clara);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+/* Header e Navegação */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: var(--transicao-suave);
+    border-radius: 0.375rem;
+    margin: 0 0.25rem;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Cards de Métricas */
+.metricas-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: var(--sombra-suave);
+    transition: var(--transicao-suave);
+    overflow: hidden;
+    position: relative;
+}
+
+.metricas-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--sombra-media);
+}
+
+.metricas-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--cor-primaria), var(--cor-info));
+}
+
+.metricas-icono {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: white;
+    box-shadow: var(--sombra-suave);
+}
+
+.metricas-valor {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Cards Gerais */
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: var(--sombra-suave);
+    transition: var(--transicao-suave);
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--sombra-media);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-info));
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Tabelas */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--cor-escura);
+    color: white;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: var(--transicao-suave);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: scale(1.01);
+}
+
+/* Badges de Status */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-sucesso {
+    background-color: var(--cor-sucesso);
+    color: white;
+}
+
+.badge-falha {
+    background-color: var(--cor-perigo);
+    color: white;
+}
+
+.badge-executando {
+    background-color: var(--cor-aviso);
+    color: var(--cor-escura);
+}
+
+.badge-pendente {
+    background-color: var(--cor-info);
+    color: white;
+}
+
+/* Botões */
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: var(--transicao-suave);
+    border: none;
+    padding: 0.5rem 1rem;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-suave);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--cor-primaria), #0056b3);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--cor-sucesso), #1e7e34);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--cor-perigo), #c82333);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--cor-aviso), #e0a800);
+}
+
+/* Alertas */
+.alert {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: var(--sombra-suave);
+    border-left: 4px solid;
+}
+
+.alert-info {
+    border-left-color: var(--cor-info);
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(23, 162, 184, 0.05));
+}
+
+.alert-success {
+    border-left-color: var(--cor-sucesso);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+}
+
+.alert-warning {
+    border-left-color: var(--cor-aviso);
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+}
+
+.alert-danger {
+    border-left-color: var(--cor-perigo);
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+}
+
+/* Métricas do Sistema */
+.metricas-sistema {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.metricas-sistema h6 {
+    font-weight: 600;
+    color: var(--cor-escura);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 1rem;
+    background-color: rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: 1rem;
+    transition: width 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    0% {
+        background-position: 1rem 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
+}
+
+/* Status dos Pipelines */
+.pipeline-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 0.5rem;
+    transition: var(--transicao-suave);
+}
+
+.pipeline-item:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+.pipeline-nome {
+    font-weight: 600;
+    color: var(--cor-escura);
+}
+
+.pipeline-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicador {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.status-sucesso {
+    background-color: var(--cor-sucesso);
+}
+
+.status-falha {
+    background-color: var(--cor-perigo);
+}
+
+.status-executando {
+    background-color: var(--cor-aviso);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+/* Animações de Loading */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .metricas-valor {
+        font-size: 2rem;
+    }
+    
+    .metricas-icono {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 0.5rem;
+    }
+    
+    .metricas-valor {
+        font-size: 1.75rem;
+    }
+    
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Modais */
+.modal-content {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: var(--sombra-media);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-info));
+    color: white;
+    border: none;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Utilitários */
+.text-gradient {
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-info));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-custom {
+    box-shadow: var(--sombra-media);
+}
+
+.border-gradient {
+    border: 2px solid;
+    border-image: linear-gradient(135deg, var(--cor-primaria), var(--cor-info)) 1;
+}
+
+/* Estados de Hover Especiais */
+.hover-lift {
+    transition: var(--transicao-suave);
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra-media);
+}
+
+/* Animações de Entrada */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

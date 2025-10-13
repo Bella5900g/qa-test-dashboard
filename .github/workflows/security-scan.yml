@@ -1,0 +1,221 @@
+# QA Test Automation Dashboard - Security Scan
+# Desenvolvido por Isabella Barbosa - Engenheira de QA Sênior
+
+name: 🔒 Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Executar scan de segurança semanalmente
+    - cron: '0 2 * * 1'
+
+jobs:
+  # =============================================================================
+  # Job: Análise de Vulnerabilidades de Dependências
+  # =============================================================================
+  dependency-scan:
+    name: 🔍 Scan de Dependências
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install safety bandit
+
+      - name: 🛡️ Verificar vulnerabilidades (Safety)
+        run: |
+          cd backend
+          safety check --json --output safety-report.json || true
+          safety check
+
+      - name: 🔒 Análise de segurança (Bandit)
+        run: |
+          cd backend
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -f txt
+
+      - name: 📊 Upload relatórios de segurança
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            backend/safety-report.json
+            backend/bandit-report.json
+
+  # =============================================================================
+  # Job: Scan de Código com CodeQL
+  # =============================================================================
+  codeql-analysis:
+    name: 🔍 CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'python' ]
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🔍 Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: 🔍 Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # =============================================================================
+  # Job: Scan de Container
+  # =============================================================================
+  container-scan:
+    name: 🐳 Scan de Container
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐳 Build imagem Docker
+        run: |
+          docker build -f docker/Dockerfile --target backend -t qa-dashboard-backend .
+          docker build -f docker/Dockerfile --target frontend -t qa-dashboard-frontend .
+
+      - name: 🔒 Scan com Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'qa-dashboard-backend'
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+
+      - name: 🔒 Scan com Trivy (Frontend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'qa-dashboard-frontend'
+          format: 'sarif'
+          output: 'trivy-frontend-results.sarif'
+
+      - name: 📊 Upload resultados Trivy
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+
+      - name: 📊 Upload resultados Trivy (Frontend)
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-frontend-results.sarif'
+
+  # =============================================================================
+  # Job: Scan de Secrets
+  # =============================================================================
+  secret-scan:
+    name: 🔐 Scan de Secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔐 Scan com TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # =============================================================================
+  # Job: Análise de Licenças
+  # =============================================================================
+  license-scan:
+    name: 📄 Análise de Licenças
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install pip-licenses
+
+      - name: 📄 Verificar licenças
+        run: |
+          cd backend
+          pip-licenses --format=json --output-file=licenses.json
+          pip-licenses --format=html --output-file=licenses.html
+
+      - name: 📊 Upload relatório de licenças
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: license-reports
+          path: |
+            backend/licenses.json
+            backend/licenses.html
+
+  # =============================================================================
+  # Job: Notificação de Segurança
+  # =============================================================================
+  security-notification:
+    name: 📢 Notificação de Segurança
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, codeql-analysis, container-scan, secret-scan, license-scan]
+    if: always()
+
+    steps:
+      - name: 📊 Gerar resumo de segurança
+        run: |
+          echo "## 🔒 Resumo de Segurança" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Dependências | ${{ needs.dependency-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 CodeQL | ${{ needs.codeql-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐳 Container | ${{ needs.container-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔐 Secrets | ${{ needs.secret-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📄 Licenças | ${{ needs.license-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📢 Notificar Slack (se houver falhas)
+        uses: 8398a7/action-slack@v3
+        if: failure()
+        with:
+          status: failure
+          channel: '#security-alerts'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

@@ -1,0 +1,13 @@
+Flask==2.3.3
+Flask-CORS==4.0.0
+Flask-SQLAlchemy==3.0.5
+SQLAlchemy==2.0.21
+Werkzeug==2.3.7
+pytest==7.4.2
+pytest-flask==1.2.0
+requests==2.31.0
+selenium==4.15.0
+webdriver-manager==4.0.1
+psutil==5.9.6
+python-dateutil==2.8.2
+gunicorn==21.2.0
