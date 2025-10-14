@@ -10,9 +10,9 @@
 
 **Dashboard completo para automação e monitoramento de testes de qualidade de software**
 
-[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Acessar%20Dashboard-blue)](https://bella5900g.github.io/qa-test-dashboard/)
+
 [![Documentação](https://img.shields.io/badge/📚%20Documentação-Ver%20Guia-green)](https://bella5900g.github.io/qa-test-dashboard/docs/)
-[![API Docs](https://img.shields.io/badge/🔧%20API%20Docs-Endpoints-orange)](https://bella5900g.github.io/qa-test-dashboard/api/)
+
 
 </div>
 
